@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>E&C DRIVER MAP</title>
+    <meta name="theme-color" content="#1a1a2e" />
+    <link href="//fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        /* ── reset & base ── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0b0b14;
+            color: #eaeef2;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+        }
+
+        :root {
+            --accent: #f7c948;
+            --card: #16161f;
+            --card2: #1e1e2a;
+            --border: #2a2a3a;
+            --text: #eaeef2;
+            --muted: #9aa0b0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0b14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a4a;
+            border-radius: 6px;
+        }
+
+        /* ── light mode ── */
+        body.light-mode {
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --accent: #2563eb;
+            --card2: #f9fafb;
+            background: #f0f0f0;
+        }
+        body.light-mode * {
+            color: #000 !important;
+        }
+        body.light-mode header {
+            background: #f5f5f5 !important;
+            border-bottom: 1px solid #ccc !important;
+        }
+        body.light-mode .map-wrapper {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+        }
+        body.light-mode .settings-card {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+        }
+        body.light-mode .settings-card input {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .login-box {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+        }
+        body.light-mode .login-box input {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode button {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .badge {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .header-actions button,
+        body.light-mode .gear-btn {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .settings-actions .save-btn {
+            background: #2563eb !important;
+            color: #fff !important;
+            border-color: #2563eb !important;
+        }
+        body.light-mode .settings-actions .close-btn {
+            background: #f5f5f5 !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .map-driver-control {
+            background: #fff !important;
+            border-color: #ddd !important;
+            color: #000 !important;
+        }
+        body.light-mode .map-driver-control .driver-entry {
+            border-bottom-color: #ddd !important;
+        }
+        body.light-mode .debug-box {
+            background: #f5f5f5 !important;
+            border-color: #ccc !important;
+            color: #000 !important;
+        }
+        body.light-mode .login-box button {
+            background: #2563eb !important;
+            color: #fff !important;
+            border-color: #2563eb !important;
+        }
+
+        /* ── login overlay ── */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0b0b14;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 360px;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .login-box h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            background: #0b0b14;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+        .login-box input:focus {
+            border-color: var(--accent);
+        }
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background: var(--accent);
+            border: none;
+            color: #0b0b14;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #loginError {
+            color: #e74c3c;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        /* ── header ── */
+        header {
+            background: #0f0f18;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            position: relative;
+            z-index: 10000;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            background: var(--accent);
+            color: #0b0b14;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header-actions button {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .header-actions button:hover {
+            background: #2a2a3e;
+            border-color: var(--accent);
+        }
+
+        .gear-btn {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1;
+        }
+        .gear-btn:hover {
+            background: #2a2a3e;
+            border-color: var(--accent);
+        }
+
+        /* ── map wrapper ── */
+        .map-wrapper {
+            flex: 1;
+            background: var(--card);
+            border: none;
+            border-radius: 0;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+            height: 100%;
+        }
+
+        #dispatch-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── map driver control (top-left) ── */
+        .map-driver-control {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-height: 260px;
+            overflow-y: auto;
+            backdrop-filter: blur(4px);
+            min-width: 140px;
+            max-width: 200px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            margin: 10px 0 0 10px;
+        }
+        .map-driver-control .driver-entry {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 0;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+            border-radius: 4px;
+            padding: 4px 6px;
+        }
+        .map-driver-control .driver-entry:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .map-driver-control .driver-entry:last-child {
+            border-bottom: none;
+        }
+        .map-driver-control .driver-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .map-driver-control .driver-name {
+            font-weight: 500;
+            flex: 1;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .map-driver-control .driver-status {
+            font-size: 10px;
+            margin-left: auto;
+            white-space: nowrap;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .map-driver-control .driver-status.online {
+            color: #2ecc71;
+        }
+        .map-driver-control .driver-status.standby {
+            color: #f1c40f;
+        }
+        .map-driver-control .driver-status.offline {
+            color: #e74c3c;
+        }
+        .map-driver-control .no-drivers {
+            color: var(--muted);
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        body.light-mode .map-driver-control .driver-entry:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        /* ── map fit button ── */
+        .map-fit-btn {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+            outline: none;
+            margin: 0 0 8px 0;
+            color: #333;
+            background: white;
+        }
+        .map-fit-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: #333;
+            fill: none;
+            stroke-width: 2;
+        }
+        body.light-mode .map-fit-btn {
+            background: #fff;
+            border-color: #666;
+        }
+        body.light-mode .map-fit-btn svg {
+            stroke: #000;
+        }
+
+        /* ── settings modal ── */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+        .settings-modal .settings-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            max-width: 620px;
+            width: 100%;
+            padding: 28px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .settings-card h2 {
+            margin-bottom: 20px;
+        }
+        .settings-card .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .settings-card .field label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .settings-card .field input {
+            background: #0b0b14;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 12px;
+            outline: none;
+        }
+        .settings-card .field input:focus {
+            border-color: var(--accent);
+        }
+        .settings-card .driver-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: var(--card2);
+            padding: 8px 12px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .settings-card .driver-row input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 6px 4px;
+            outline: none;
+            min-width: 60px;
+        }
+        .settings-card .driver-row input.color-pick {
+            width: 40px;
+            padding: 0;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            flex: 0 0 40px;
+        }
+        .settings-card .driver-row .remove-driver {
+            background: transparent;
+            border: none;
+            color: #e74c3c;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 18px;
+            flex: 0 0 auto;
+        }
+        .settings-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            flex-wrap: wrap;
+        }
+        .settings-actions button {
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .settings-actions .save-btn {
+            background: var(--accent);
+            color: #0b0b14;
+        }
+        .settings-actions .test-btn {
+            background: #1a3a2a;
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+        .settings-actions .close-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .settings-card .debug-box {
+            background: #0b0b14;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+        .settings-card .debug-box .success {
+            color: #2ecc71;
+        }
+        .settings-card .debug-box .error {
+            color: #e74c3c;
+        }
+        .settings-card .debug-box .info {
+            color: #f1c40f;
+        }
+        .settings-card .debug-box .device-id {
+            color: var(--accent);
+            font-weight: 700;
+            background: #1a1a2e;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 600px) {
+            .map-driver-control {
+                min-width: 100px;
+                max-width: 150px;
+                font-size: 11px;
+                padding: 6px 10px;
+                max-height: 200px;
+                margin: 6px 0 0 6px;
+            }
+            .map-driver-control .driver-name {
+                font-size: 11px;
+            }
+            .map-driver-control .driver-status {
+                font-size: 9px;
+            }
+            header {
+                padding: 8px 12px;
+            }
+            header span {
+                font-size: 14px !important;
+            }
+            .header-actions button {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            .gear-btn {
+                font-size: 16px;
+                padding: 4px 8px;
+            }
+            .settings-card {
+                padding: 18px;
+            }
+            .settings-card .driver-row {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .settings-card .driver-row input[type="text"] {
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+            .settings-card .driver-row input.color-pick {
+                width: 50px;
+                height: 40px;
+                flex: 0 0 50px;
+            }
+            .settings-card .driver-row .remove-driver {
+                flex: 0 0 auto;
+            }
+            .map-fit-btn {
+                width: 36px;
+                height: 36px;
+            }
+            .map-fit-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .map-driver-control {
+                min-width: 80px;
+                max-width: 120px;
+                font-size: 10px;
+                padding: 4px 8px;
+                max-height: 160px;
+            }
+            .map-driver-control .driver-name {
+                font-size: 10px;
+            }
+            .map-driver-control .driver-status {
+                font-size: 8px;
+                padding: 0 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── LOGIN OVERLAY ─── -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>DISPATCH LOGIN</h2>
+            <input type="email" id="loginEmail" placeholder="Email (@ec.com)" autofocus />
+            <input type="password" id="loginPassword" placeholder="Password" />
+            <button onclick="login()">Sign In</button>
+            <div id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- ─── MAIN APP ─── -->
+    <div id="app" style="display:none;">
+
+        <!-- HEADER -->
+        <header>
+            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <img src="icon2.png" onclick="toggleTheme()" style="height:32px; width:auto; cursor:pointer;" alt="Logo" />
+                <span style="font-size:16px; font-weight:700; color:var(--text);">E&C DRIVER MAP</span>
+                <span class="badge">LIVE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+                <button class="gear-btn" onclick="location.reload(true);" title="Refresh page">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+                <button class="gear-btn" onclick="openSettings()" title="Settings">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAP (full remaining space) -->
+        <div class="map-wrapper" id="mainMapWrapper">
+            <div id="dispatch-map"></div>
+        </div>
+
+    </div>
+
+    <!-- ─── SETTINGS MODAL ─── -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-card">
+            <h2>Drivers &amp; PAJ GPS</h2>
+
+            <div class="field">
+                <label>PAJ GPS Email (your login at connect.paj-gps.de)</label>
+                <input type="email" id="pajEmail" placeholder="your-email@example.com" />
+            </div>
+            <div class="field">
+                <label>PAJ GPS Password</label>
+                <input type="password" id="pajPassword" placeholder="Your PAJ GPS password" />
+            </div>
+
+            <div style="border-top:1px solid var(--border); margin:16px 0;"></div>
+
+            <div id="driverSettingsList"></div>
+            <button onclick="addDriverRow()" style="background:var(--card2); border:1px dashed var(--border); color:var(--text); padding:10px; border-radius:20px; width:100%; margin-top:8px; cursor:pointer;">+ Add Driver</button>
+
+            <div style="border-top:1px solid var(--border); margin:16px 0; padding-top:16px;">
+                <h3 style="font-size:14px; margin-bottom:10px;">Find Your Device IDs</h3>
+                <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Click the button below to see all your PAJ GPS devices and their IDs.</p>
+                <button onclick="testPAJConnection()" style="background:#1a3a2a; border:2px solid #2ecc71; color:#2ecc71; padding:10px 20px; border-radius:30px; cursor:pointer; font-weight:700; font-size:14px; width:100%;">
+                    Test Connection &amp; List Devices
+                </button>
+                <div class="debug-box" id="debugOutput">
+                    <span class="info">Click the green button above to find your Device IDs.</span>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button class="save-btn" onclick="saveSettings()">Save</button>
+                <button class="close-btn" onclick="closeSettings()">✕ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── FIREBASE + GOOGLE MAPS ─── -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6umETP8wBUEV41ugAtiNiChUeLmmwmZI&libraries=places,geometry&callback=initMap" async defer>
+    </script>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════
+        //  FIREBASE
+        // ═══════════════════════════════════════════════════════════════════
+        firebase.initializeApp({
+            apiKey: "AIzaSyAKmgoXA4m3cRTmxJq4aUyva5SVvFbTNqg",
+            authDomain: "eandccourier-36fcc.firebaseapp.com",
+            databaseURL: "https://eandccourier-36fcc-default-rtdb.firebaseio.com",
+            projectId: "eandccourier-36fcc",
+        });
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  MAP STYLES
+        // ═══════════════════════════════════════════════════════════════════
+        const mapStyles = [{
+            "featureType": "all",
+            "elementType": "all",
+            "stylers": [{ "invert_lightness": true }, { "saturation": 10 }, { "lightness": 30 }, { "gamma": 0.5 },
+                { "hue": "#435158" }
+            ]
+        }];
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  THEME
+        // ═══════════════════════════════════════════════════════════════════
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('ec_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+            updateMapStyles();
+        }
+
+        function updateMapStyles() {
+            const isLight = document.body.classList.contains('light-mode');
+            const style = isLight ? [] : mapStyles;
+            if (window.map) map.setOptions({ styles: style });
+        }
+
+        if (localStorage.getItem('ec_theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  AUTH
+        // ═══════════════════════════════════════════════════════════════════
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorEl = document.getElementById('loginError');
+            errorEl.textContent = '';
+            if (!email || !password) { errorEl.textContent = 'Please enter email and password.'; return; }
+            auth.signInWithEmailAndPassword(email, password).catch(err => {
+                errorEl.textContent = 'Login failed: ' + err.message;
+            });
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                const email = user.email;
+                if (!email.endsWith('@ec.com')) {
+                    alert('Access denied. Only @ec.com emails allowed.');
+                    auth.signOut();
+                    return;
+                }
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                initApp();
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  STATE
+        // ═══════════════════════════════════════════════════════════════════
+        let drivers = {};
+        let map = null;
+        let driverMarkers = {};
+        let pulseCircles = {};
+        let pulseAnimationId = null;
+        let gpsInterval = null;
+        let pajToken = null;
+        let authRetryInProgress = false;
+
+        const PAJ_BASE = 'https://connect.paj-gps.de/api/v1';
+        const STANDBY_THRESHOLD = 15 * 60 * 1000;
+        const OFFLINE_THRESHOLD = 60 * 60 * 1000;
+
+        function getDriversRef() { return db.ref('developer/dispatch_dashboard/drivers'); }
+
+        function getMasterRef() { return db.ref('developer/dispatch_dashboard/master_config'); }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  GPS STATUS HELPER
+        // ═══════════════════════════════════════════════════════════════════
+        function getGPSStatus(lastUpdated, deviceStatus) {
+            if (deviceStatus !== undefined) {
+                if (deviceStatus === 1) return { status: 'online', label: '● Online', cls: 'online' };
+                else if (deviceStatus === 2) return { status: 'standby', label: '◐ Standby', cls: 'standby' };
+                else return { status: 'offline', label: '○ Offline', cls: 'offline' };
+            }
+            if (!lastUpdated) return { status: 'offline', label: '○ Offline', cls: 'offline' };
+            const diff = Date.now() - lastUpdated;
+            if (diff < STANDBY_THRESHOLD) return { status: 'online', label: '● Online', cls: 'online' };
+            if (diff < OFFLINE_THRESHOLD) return { status: 'standby', label: '◐ Standby', cls: 'standby' };
+            return { status: 'offline', label: '○ Offline', cls: 'offline' };
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  PAJ AUTH
+        // ═══════════════════════════════════════════════════════════════════
+        async function authenticatePAJ() {
+            let email = document.getElementById('pajEmail').value.trim();
+            let pass = document.getElementById('pajPassword').value.trim();
+            if (!email || !pass) {
+                const snap = await getMasterRef().once('value');
+                const cfg = snap.val() || {};
+                email = cfg.paj_email || '';
+                pass = cfg.paj_password || '';
+                if (email) document.getElementById('pajEmail').value = email;
+                if (pass) document.getElementById('pajPassword').value = pass;
+            }
+            if (!email || !pass) return;
+            try {
+                const response = await fetch(`${PAJ_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+                const data = await response.json();
+                let token = data.success?.token || data.token;
+                if (token) {
+                    pajToken = token;
+                    getMasterRef().update({ paj_token: token });
+                    await fetchAllDevicePositions();
+                }
+            } catch (e) { console.warn('PAJ auth error:', e); }
+        }
+
+        async function testPAJConnection() {
+            const debug = document.getElementById('debugOutput');
+            const email = document.getElementById('pajEmail').value.trim();
+            const pass = document.getElementById('pajPassword').value.trim();
+            debug.innerHTML = '<span class="info">⏳ Testing connection...</span>';
+            if (!email || !pass) {
+                debug.innerHTML = '<span class="error">❌ Please enter your PAJ GPS email and password first.</span>';
+                return;
+            }
+            try {
+                const loginRes = await fetch(`${PAJ_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+                const loginData = await loginRes.json();
+                let token = loginData.success?.token || loginData.token;
+                if (!token) { debug.innerHTML += `<span class="error">❌ Login failed.</span>`; return; }
+                debug.innerHTML += `<span class="success">✅ Login successful!</span><br><br>`;
+                const deviceRes = await fetch(`${PAJ_BASE}/device`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const devicesData = await deviceRes.json();
+                let devices = devicesData.success || devicesData.data || devicesData;
+                if (!Array.isArray(devices)) { debug.innerHTML += `<span class="error">❌ No devices found.</span>`; return; }
+                let html = `<span class="success">✅ Found ${devices.length} device(s):</span><br><br>`;
+                devices.forEach((d, i) => {
+                    const devId = d.id || d.deviceId || d.imei || 'Unknown';
+                    const name = d.name || d.deviceName || `Device ${i+1}`;
+                    html += `<span class="info">${i+1}. </span><strong>${name}</strong><br>`;
+                    html += `   📱 Device ID: <span class="device-id">${devId}</span><br>`;
+                });
+                html += `<span class="info">💡 Copy the Device ID and paste into each driver's settings.</span>`;
+                debug.innerHTML = html;
+                pajToken = token;
+                getMasterRef().update({ paj_token: token });
+                await fetchAllDevicePositions();
+            } catch (e) {
+                debug.innerHTML += `<span class="error">❌ Error: ${e.message}</span>`;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  FETCH POSITIONS
+        // ═══════════════════════════════════════════════════════════════════
+        let deviceStatuses = {};
+
+        async function fetchAllDevicePositions() {
+            if (!pajToken) {
+                await authenticatePAJ();
+                if (!pajToken) return;
+            }
+            const entries = Object.entries(drivers).filter(([id, d]) => d.deviceId && String(d.deviceId).trim() !== '');
+            if (entries.length === 0) return;
+
+            const deviceIds = entries.map(([did, d]) => parseInt(String(d.deviceId).trim(), 10));
+            const payload = { devicesId: deviceIds };
+
+            try {
+                const response = await fetch(`${PAJ_BASE}/getAllDeviceStatus`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${pajToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (response.status === 401 || response.status === 403) {
+                    if (!authRetryInProgress) {
+                        authRetryInProgress = true;
+                        await authenticatePAJ();
+                        authRetryInProgress = false;
+                        await fetchAllDevicePositions();
+                        return;
+                    }
+                    return;
+                }
+                if (!response.ok) return;
+                const data = await response.json();
+                if (!data.success || typeof data.success !== 'object') return;
+
+                const now = Date.now();
+                for (const [deviceIdStr, deviceData] of Object.entries(data.success)) {
+                    const devId = parseInt(deviceIdStr, 10);
+                    if (!devId) continue;
+
+                    const deviceStatus = deviceData.deviceStatus || {};
+                    const connectionStatus = deviceStatus.connection_status;
+                    if (connectionStatus !== undefined) {
+                        deviceStatuses[devId] = connectionStatus;
+                    }
+
+                    const lastPoint = deviceData.lastPoint || null;
+                    const battery = lastPoint?.battery ?? lastPoint?.battery_level ?? 0;
+                    const heading = lastPoint?.direction ?? null;
+                    const hasAlarm = !!(deviceStatus.movementAlarm || deviceStatus.tiltAlarm ||
+                        deviceStatus.removeAlarm || deviceStatus.sosAlarm);
+                    const odometer = deviceStatus.totalDistance || deviceStatus.odometer || 0;
+
+                    if (lastPoint && lastPoint.lat !== undefined && lastPoint.lng !== undefined) {
+                        const lat = lastPoint.lat;
+                        const lng = lastPoint.lng;
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            const tsSec = lastPoint.dateunix;
+                            let pajTimestamp = now;
+                            if (tsSec && !isNaN(tsSec)) pajTimestamp = tsSec * 1000;
+
+                            for (let [did, drv] of Object.entries(drivers)) {
+                                const drvDeviceId = drv.deviceId ? String(drv.deviceId).trim() : '';
+                                if (drvDeviceId && drvDeviceId === String(devId)) {
+                                    drv.lastLocation = { lat, lng, updatedAt: pajTimestamp };
+                                    drv.battery = battery;
+                                    drv.heading = heading;
+                                    drv.hasAlarm = hasAlarm;
+                                    drv.odometer = odometer;
+                                    drv._status = connectionStatus;
+                                    getDriversRef().child(did).update({
+                                        lastLocation: drv.lastLocation,
+                                        battery: battery,
+                                        heading: heading,
+                                        hasAlarm: hasAlarm,
+                                        odometer: odometer,
+                                        _status: connectionStatus
+                                    });
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                updateMapMarkers();
+                updateMapDriverControl();
+            } catch (e) {
+                console.warn('PAJ fetch error:', e);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  MAP INIT
+        // ═══════════════════════════════════════════════════════════════════
+        let mapInitialized = false;
+
+        function initMap() {
+            if (mapInitialized) return;
+            const isLight = document.body.classList.contains('light-mode');
+            const center = { lat: 49.8425, lng: -99.9497 };
+
+            map = new google.maps.Map(document.getElementById('dispatch-map'), {
+                center: center,
+                zoom: 11,
+                styles: isLight ? [] : mapStyles,
+                gestureHandling: 'greedy',
+                mapTypeControl: false,
+                fullscreenControl: true,
+            });
+            mapInitialized = true;
+
+            // ── Driver control (top-left) ──
+            const driverControlDiv = document.createElement('div');
+            driverControlDiv.id = 'mapDriverControl';
+            driverControlDiv.className = 'map-driver-control';
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(driverControlDiv);
+            updateMapDriverControl();
+
+            // ── Fit button (bottom-right) ──
+            const fitControlDiv = document.createElement('div');
+            fitControlDiv.innerHTML = `
+                <button class="map-fit-btn" aria-label="Fit all drivers">
+                    <svg viewBox="0 0 24 24"><path d="M3 3v6h2V5h4V3H3zm16 0v6h2V3h-6v2h4zM3 21v-6h2v4h4v2H3zm16 0v-6h2v6h-6v-2h4z"/><rect x="5" y="5" width="14" height="14" rx="1" stroke="currentColor" fill="none"/></svg>
+                </button>
+            `;
+            const fitButton = fitControlDiv.querySelector('.map-fit-btn');
+            fitButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fitMapToDrivers();
+            });
+            map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(fitControlDiv);
+
+            // ── Restore map state ──
+            getMasterRef().once('value').then(snap => {
+                const cfg = snap.val() || {};
+                if (cfg.map_center_lat && cfg.map_center_lng && cfg.map_zoom) {
+                    map.setCenter({ lat: cfg.map_center_lat, lng: cfg.map_center_lng });
+                    map.setZoom(cfg.map_zoom);
+                }
+            });
+
+            google.maps.event.addListener(map, 'idle', function() {
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                if (center && zoom) {
+                    getMasterRef().update({
+                        map_center_lat: center.lat(),
+                        map_center_lng: center.lng(),
+                        map_zoom: zoom
+                    });
+                }
+            });
+
+            // Initial markers
+            updateMapMarkers();
+
+            // Trigger resize after a moment
+            setTimeout(() => google.maps.event.trigger(map, 'resize'), 200);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  MAP MARKERS
+        // ═══════════════════════════════════════════════════════════════════
+        function updateMapMarkers() {
+            if (!map) return;
+
+            Object.values(driverMarkers).forEach(m => m.setMap(null));
+            driverMarkers = {};
+            for (let id in pulseCircles) {
+                if (pulseCircles[id]) pulseCircles[id].setMap(null);
+            }
+            pulseCircles = {};
+
+            for (let [id, drv] of Object.entries(drivers)) {
+                if (!drv.lastLocation) continue;
+                const pos = drv.lastLocation;
+                const color = drv.color || '#f7c948';
+                const icon = getDriverIcon(drv.name || 'Driver', color, drv.heading);
+                const marker = new google.maps.Marker({
+                    position: { lat: pos.lat, lng: pos.lng },
+                    map: map,
+                    icon: icon,
+                    title: drv.name || 'Driver'
+                });
+                driverMarkers[id] = marker;
+
+                // click → zoom 50% (zoom in) to driver
+                marker.addListener('click', function() {
+                    zoomToDriver(id);
+                });
+
+                const circle = new google.maps.Circle({
+                    center: { lat: pos.lat, lng: pos.lng },
+                    radius: 15,
+                    fillColor: color,
+                    fillOpacity: 0.2,
+                    strokeColor: color,
+                    strokeOpacity: 0.6,
+                    strokeWeight: 2,
+                    map: map
+                });
+                pulseCircles[id] = circle;
+            }
+
+            if (Object.keys(pulseCircles).length > 0) startPulseAnimation();
+            else if (pulseAnimationId) cancelAnimationFrame(pulseAnimationId);
+        }
+
+        function getDriverIcon(name, color, heading) {
+            const safeName = name.replace(/'/g, "\\'");
+            const svg =
+                `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="60"><text x="25" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${safeName}</text><circle cx="25" cy="40" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+            return {
+                url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
+                anchor: new google.maps.Point(25, 40),
+                scaledSize: new google.maps.Size(50, 60),
+                rotation: heading || 0
+            };
+        }
+
+        function startPulseAnimation() {
+            if (pulseAnimationId) cancelAnimationFrame(pulseAnimationId);
+            let startTime = performance.now();
+
+            function animate(time) {
+                const elapsed = (time - startTime) / 1000;
+                const zoom = map ? map.getZoom() : 10;
+                const metersPerPixel = 156000 / Math.pow(2, zoom);
+                const desiredPixelRadius = 20;
+                let radius = desiredPixelRadius * metersPerPixel;
+                radius = Math.min(radius, 5000);
+                radius = Math.max(radius, 5);
+                const pulse = 1 + 0.3 * Math.sin(elapsed * 2.5);
+                const finalRadius = radius * pulse;
+                for (let id in pulseCircles) {
+                    if (pulseCircles[id]) pulseCircles[id].setRadius(finalRadius);
+                }
+                pulseAnimationId = requestAnimationFrame(animate);
+            }
+            pulseAnimationId = requestAnimationFrame(animate);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  ZOOM TO DRIVER (50% zoom-in effect)
+        // ═══════════════════════════════════════════════════════════════════
+        function zoomToDriver(driverId) {
+            const drv = drivers[driverId];
+            if (!drv || !drv.lastLocation) return;
+            const lat = drv.lastLocation.lat;
+            const lng = drv.lastLocation.lng;
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            // Get current zoom, then zoom in by ~50% (increase zoom level by ~2.5 steps)
+            const currentZoom = map.getZoom();
+            const newZoom = Math.min(currentZoom + 2.5, 20);
+
+            // Pan and zoom with a smooth transition
+            map.panTo({ lat, lng });
+            map.setZoom(newZoom);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  FIT MAP TO DRIVERS
+        // ═══════════════════════════════════════════════════════════════════
+        function fitMapToDrivers() {
+            const bounds = new google.maps.LatLngBounds();
+            let hasPoints = false;
+            for (let drv of Object.values(drivers)) {
+                if (drv.lastLocation && drv.lastLocation.lat && drv.lastLocation.lng) {
+                    bounds.extend({ lat: drv.lastLocation.lat, lng: drv.lastLocation.lng });
+                    hasPoints = true;
+                }
+            }
+            if (hasPoints) map.fitBounds(bounds);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  MAP DRIVER CONTROL (top-left list)
+        // ═══════════════════════════════════════════════════════════════════
+        function updateMapDriverControl() {
+            const container = document.getElementById('mapDriverControl');
+            if (!container) return;
+            const entries = Object.entries(drivers);
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="no-drivers">No drivers — add in Settings</div>';
+                return;
+            }
+            let html = '';
+            for (let [id, drv] of entries) {
+                const devId = drv.deviceId ? parseInt(String(drv.deviceId).trim(), 10) : null;
+                const status = getGPSStatus(drv.lastLocation?.updatedAt, drv._status);
+                const color = drv.color || '#f7c948';
+                const statusColor = status.cls === 'online' ? '#2ecc71' :
+                    status.cls === 'standby' ? '#f1c40f' : '#e74c3c';
+                html += `
+                    <div class="driver-entry" onclick="zoomToDriver('${id}')">
+                        <span class="driver-dot" style="background:${color};"></span>
+                        <span class="driver-name">${drv.name || 'Driver'}</span>
+                        <span class="driver-status ${status.cls}">${status.label}</span>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  SETTINGS
+        // ═══════════════════════════════════════════════════════════════════
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            renderSettingsList();
+            getMasterRef().once('value').then(snap => {
+                const cfg = snap.val() || {};
+                document.getElementById('pajEmail').value = cfg.paj_email || '';
+                document.getElementById('pajPassword').value = cfg.paj_password || '';
+            });
+        }
+
+        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+
+        function renderSettingsList() {
+            const container = document.getElementById('driverSettingsList');
+            container.innerHTML = '';
+            for (let [id, drv] of Object.entries(drivers)) {
+                const row = document.createElement('div');
+                row.className = 'driver-row';
+                row.innerHTML = `
+                    <input type="text" value="${drv.name || ''}" placeholder="Name" data-id="${id}" class="drv-name">
+                    <input type="color" value="${drv.color || '#f7c948'}" data-id="${id}" class="drv-color color-pick">
+                    <input type="text" value="${drv.deviceId || ''}" placeholder="Device ID" data-id="${id}" class="drv-device">
+                    <button class="remove-driver" onclick="removeDriver('${id}')">✕</button>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        function addDriverRow() {
+            getDriversRef().push({ name: 'Driver', color: '#f7c948', deviceId: '', lastLocation: null });
+        }
+
+        function removeDriver(id) {
+            if (!confirm('Remove this driver?')) return;
+            getDriversRef().child(id).remove();
+        }
+
+        function saveSettings() {
+            const email = document.getElementById('pajEmail').value.trim();
+            const pass = document.getElementById('pajPassword').value.trim();
+
+            getMasterRef().update({
+                paj_email: email,
+                paj_password: pass,
+            });
+
+            const rows = document.querySelectorAll('#driverSettingsList .driver-row');
+            rows.forEach(row => {
+                const id = row.querySelector('.drv-name').dataset.id;
+                const name = row.querySelector('.drv-name').value;
+                const color = row.querySelector('.drv-color').value;
+                const deviceId = row.querySelector('.drv-device').value;
+                if (id) {
+                    getDriversRef().child(id).update({ name, color, deviceId });
+                }
+            });
+            if (email && pass) authenticatePAJ();
+            closeSettings();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  INIT APP
+        // ═══════════════════════════════════════════════════════════════════
+        function initApp() {
+            // Load drivers
+            getDriversRef().on('value', snap => {
+                drivers = snap.val() || {};
+                updateMapMarkers();
+                updateMapDriverControl();
+                renderSettingsList();
+            });
+
+            // Load master config
+            getMasterRef().once('value').then(snap => {
+                const cfg = snap.val() || {};
+                document.getElementById('pajEmail').value = cfg.paj_email || '';
+                document.getElementById('pajPassword').value = cfg.paj_password || '';
+                pajToken = cfg.paj_token || null;
+                if (cfg.paj_email && cfg.paj_password) authenticatePAJ();
+
+                // Restore map state if map already initialized
+                if (map && cfg.map_center_lat && cfg.map_center_lng && cfg.map_zoom) {
+                    map.setCenter({ lat: cfg.map_center_lat, lng: cfg.map_center_lng });
+                    map.setZoom(cfg.map_zoom);
+                }
+            }).catch(() => {
+                getMasterRef().set({ paj_email: '', paj_password: '', paj_token: '' });
+            });
+
+            // GPS polling
+            if (gpsInterval) clearInterval(gpsInterval);
+            gpsInterval = setInterval(() => {
+                if (pajToken) fetchAllDevicePositions();
+            }, 15000);
+            setTimeout(() => { if (pajToken) fetchAllDevicePositions(); }, 3000);
+
+            window.addEventListener('beforeunload', function() {
+                if (gpsInterval) clearInterval(gpsInterval);
+                if (pulseAnimationId) cancelAnimationFrame(pulseAnimationId);
+            });
+        }
+
+        // ── Enter key on login ──
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const overlay = document.getElementById('login-overlay');
+                if (overlay.style.display !== 'none') {
+                    login();
+                    e.preventDefault();
+                }
+            }
+            if (e.key === 'Escape') {
+                const settings = document.getElementById('settingsModal');
+                if (settings.style.display === 'flex') {
+                    closeSettings();
+                    e.preventDefault();
+                }
+            }
+        });
+
+        console.log('✅ E&C DRIVER MAP loaded.');
+        console.log('📍 Click a driver name in the top-left list to zoom to their location.');
+        console.log('⚙️  Use Settings to add drivers and PAJ GPS credentials.');
+    </script>
+</body>
+</html>
