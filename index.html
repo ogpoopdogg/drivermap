@@ -14,22 +14,20 @@
             padding: 0;
         }
 
-        body {
+        /* ── FIXED FULL PAGE, NO SCROLL ── */
+        html, body {
+            height: 100%;
+            overflow: hidden;
             font-family: 'Inter', sans-serif;
             background: #0b0b14;
             color: #eaeef2;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
         }
 
         #app {
             display: flex;
             flex-direction: column;
             width: 100%;
-            flex: 1;
+            height: 100%;
             min-height: 0;
         }
 
@@ -633,7 +631,8 @@
                 <button class="gear-btn" onclick="location.reload(true);" title="Refresh page">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 </button>
-                <button class="gear-btn" onclick="openSettings()" title="Settings">
+                <!-- Settings button with ID for access control -->
+                <button id="settingsBtn" class="gear-btn" onclick="openSettings()" title="Settings">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
                 </button>
             </div>
@@ -760,6 +759,22 @@
                 }
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
+
+                // ── Force map resize after login ──
+                setTimeout(() => {
+                    if (typeof google !== 'undefined' && map) {
+                        google.maps.event.trigger(map, 'resize');
+                    }
+                }, 100);
+
+                // ── Restrict settings button to justin@ec.com and des@ec.com ──
+                const settingsBtn = document.getElementById('settingsBtn');
+                if (email === 'justin@ec.com' || email === 'des@ec.com') {
+                    settingsBtn.style.display = 'flex'; // visible
+                } else {
+                    settingsBtn.style.display = 'none';
+                }
+
                 initApp();
             } else {
                 document.getElementById('login-overlay').style.display = 'flex';
@@ -1310,7 +1325,7 @@
 
         console.log('✅ E&C DRIVER MAP loaded.');
         console.log('📍 Click a driver name in the top-left list to zoom to their location.');
-        console.log('⚙️  Use Settings to add drivers and PAJ GPS credentials.');
+        console.log('⚙️  Settings are only available for justin@ec.com and des@ec.com.');
     </script>
 </body>
 </html>
