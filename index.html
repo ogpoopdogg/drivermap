@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>E&C DRIVER MAP</title>
     <meta name="theme-color" content="#1a1a2e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- Icons for PWA -->
+    <link rel="icon" href="icon2.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon2.png" />
+
     <link href="//fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
         /* ── reset & base ── */
@@ -15,7 +25,8 @@
         }
 
         /* ── FIXED FULL PAGE, NO SCROLL ── */
-        html, body {
+        html,
+        body {
             height: 100%;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
@@ -38,6 +49,7 @@
             --border: #2a2a3a;
             --text: #eaeef2;
             --muted: #9aa0b0;
+            --pwa-blue: #3b82f6;
         }
 
         ::-webkit-scrollbar {
@@ -73,6 +85,57 @@
             border-radius: 30px;
             font-size: 11px;
             font-weight: 700;
+        }
+
+        /* ── INSTALL BUTTON (blue pill) ── */
+        .install-btn {
+            background: var(--pwa-blue);
+            color: #fff;
+            border: none;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            height: 28px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .install-btn:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transform: scale(1.02);
+        }
+        .install-btn:active {
+            transform: scale(0.96);
+        }
+        .install-btn.installed {
+            background: #22c55e;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+            cursor: default;
+        }
+        .install-btn.installed:hover {
+            background: #22c55e;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+        }
+        .install-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .install-btn.hidden {
+            display: none !important;
         }
 
         .header-actions {
@@ -114,6 +177,20 @@
         .gear-btn:hover {
             background: #2a2a3e;
             border-color: var(--accent);
+        }
+
+        .left-header-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         /* ── map wrapper ── */
@@ -730,6 +807,15 @@
                 font-size: 16px;
                 padding: 4px 8px;
             }
+            .install-btn {
+                font-size: 10px;
+                padding: 3px 12px;
+                height: 24px;
+            }
+            .install-btn svg {
+                width: 12px;
+                height: 12px;
+            }
             .settings-card {
                 padding: 18px;
             }
@@ -775,6 +861,12 @@
                 font-size: 10px;
                 padding: 1px 8px;
             }
+            .left-header-group {
+                gap: 6px;
+            }
+            .header-center {
+                gap: 4px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -799,6 +891,15 @@
             .group-drawer .group-item .group-actions {
                 justify-content: flex-start;
             }
+            .install-btn {
+                font-size: 9px;
+                padding: 2px 10px;
+                height: 22px;
+            }
+            .install-btn svg {
+                width: 10px;
+                height: 10px;
+            }
         }
     </style>
 </head>
@@ -820,11 +921,21 @@
 
         <!-- HEADER -->
         <header>
-            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <div class="left-header-group">
                 <img src="icon2.png" onclick="openGroupManager()" style="height:32px; width:auto; cursor:pointer;" alt="Logo" />
                 <span style="font-size:16px; font-weight:700; color:var(--text);">E&C DRIVER MAP</span>
-                <span class="badge">LIVE</span>
             </div>
+
+            <div class="header-center">
+                <span class="badge">LIVE</span>
+
+                <!-- ─── INSTALL BUTTON (blue pill) ─── -->
+                <button id="installBtn" class="install-btn hidden" onclick="installPWA()">
+                    <svg viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="12 12 12 2 12 12"/><polyline points="8 16 12 12 16 16"/></svg>
+                    INSTALL
+                </button>
+            </div>
+
             <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
                 <button class="gear-btn" onclick="location.reload(true);" title="Refresh page">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -911,6 +1022,102 @@
     </script>
 
     <script>
+        // ═══════════════════════════════════════════════════════════════════
+        //  PWA INSTALL
+        // ═══════════════════════════════════════════════════════════════════
+        let deferredPrompt = null;
+        let isAppInstalled = false;
+
+        // Check if already installed (standalone mode)
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            isAppInstalled = true;
+        }
+
+        // Also check if app is launched from home screen on iOS
+        if (window.navigator.standalone === true) {
+            isAppInstalled = true;
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('installBtn');
+            if (btn && !isAppInstalled) {
+                btn.classList.remove('hidden');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            isAppInstalled = true;
+            const btn = document.getElementById('installBtn');
+            if (btn) {
+                btn.classList.add('installed');
+                btn.innerHTML = `
+                    <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                    INSTALLED
+                `;
+                setTimeout(() => {
+                    btn.classList.add('hidden');
+                }, 3000);
+            }
+            deferredPrompt = null;
+        });
+
+        // Detect standalone mode after load (for browsers that don't fire appinstalled)
+        window.addEventListener('load', () => {
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                isAppInstalled = true;
+                const btn = document.getElementById('installBtn');
+                if (btn) {
+                    btn.classList.add('installed');
+                    btn.innerHTML = `
+                        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                        INSTALLED
+                    `;
+                    setTimeout(() => {
+                        btn.classList.add('hidden');
+                    }, 3000);
+                }
+            }
+        });
+
+        function installPWA() {
+            if (!deferredPrompt) {
+                // Fallback: if no prompt, show a message or redirect
+                alert('Install prompt not available. Please use your browser\'s "Add to Home Screen" feature.');
+                return;
+            }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    isAppInstalled = true;
+                    const btn = document.getElementById('installBtn');
+                    if (btn) {
+                        btn.classList.add('installed');
+                        btn.innerHTML = `
+                            <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                            INSTALLED
+                        `;
+                        setTimeout(() => {
+                            btn.classList.add('hidden');
+                        }, 3000);
+                    }
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        }
+
+        // ── Register Service Worker ──
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg))
+                    .catch(err => console.warn('Service Worker registration failed:', err));
+            });
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         //  FIREBASE
         // ═══════════════════════════════════════════════════════════════════
@@ -1003,7 +1210,7 @@
         // ═══════════════════════════════════════════════════════════════════
         let drivers = {};
         let groups = {};
-        let activeGroupIds = []; // array of group IDs
+        let activeGroupId = null;
         let map = null;
         let driverMarkers = {};
         let pulseCircles = {};
@@ -1018,53 +1225,29 @@
         const STANDBY_THRESHOLD = 15 * 60 * 1000;
         const OFFLINE_THRESHOLD = 60 * 60 * 1000;
 
-        // ── Active groups from localStorage ──
-        function loadActiveGroups() {
-            const stored = localStorage.getItem('ec_active_groups');
-            if (stored) {
-                try {
-                    activeGroupIds = JSON.parse(stored);
-                    if (!Array.isArray(activeGroupIds)) activeGroupIds = [];
-                } catch (e) {
-                    activeGroupIds = [];
-                }
-            } else {
-                activeGroupIds = [];
-            }
+        // ── Active group from localStorage ──
+        function loadActiveGroup() {
+            const stored = localStorage.getItem('ec_active_group');
+            if (stored) activeGroupId = stored;
+            else activeGroupId = null;
         }
 
-        function saveActiveGroups() {
-            localStorage.setItem('ec_active_groups', JSON.stringify(activeGroupIds));
+        function saveActiveGroup(id) {
+            activeGroupId = id;
+            if (id) localStorage.setItem('ec_active_group', id);
+            else localStorage.removeItem('ec_active_group');
             applyFilter();
         }
 
-        function toggleGroup(groupId) {
-            const index = activeGroupIds.indexOf(groupId);
-            if (index === -1) {
-                activeGroupIds.push(groupId);
-            } else {
-                activeGroupIds.splice(index, 1);
-            }
-            saveActiveGroups();
-        }
-
-        function clearActiveGroups() {
-            activeGroupIds = [];
-            saveActiveGroups();
-        }
-
-        // ── Filtered drivers (union of all active groups) ──
+        // ── Filtered drivers ──
         function getFilteredDrivers() {
-            if (activeGroupIds.length === 0) return drivers; // show all
+            if (!activeGroupId) return drivers;
+            const group = groups[activeGroupId];
+            if (!group || !group.driverIds) return {};
             const filtered = {};
-            for (let gid of activeGroupIds) {
-                const group = groups[gid];
-                if (group && group.driverIds) {
-                    for (let did of Object.keys(group.driverIds)) {
-                        if (drivers[did]) {
-                            filtered[did] = drivers[did];
-                        }
-                    }
+            for (let [id, drv] of Object.entries(drivers)) {
+                if (group.driverIds[id]) {
+                    filtered[id] = drv;
                 }
             }
             return filtered;
@@ -1080,7 +1263,7 @@
         function updateShowAllButton() {
             const btn = document.getElementById('showAllBtn');
             if (!btn) return;
-            if (activeGroupIds.length === 0) {
+            if (!activeGroupId) {
                 btn.classList.add('active');
                 btn.innerHTML = 'Show All Drivers <span class="active-pill">Active</span>';
             } else {
@@ -1640,7 +1823,7 @@
             }
             let html = '';
             for (let [id, group] of entries) {
-                const isActive = activeGroupIds.includes(id);
+                const isActive = (activeGroupId === id);
                 const isExpanded = (expandedGroupId === id);
                 const driverIds = group.driverIds || {};
                 const driverCount = Object.keys(driverIds).length;
@@ -1650,9 +1833,9 @@
                 html += `<span class="group-name">${group.name || 'Unnamed'} (${driverCount})</span>`;
                 html += `<div class="group-actions">`;
                 if (isActive) {
-                    html += `<button class="show-btn active-btn" onclick="toggleGroup('${id}')">Active</button>`;
+                    html += `<button class="show-btn active-btn" onclick="showGroup('${id}')">Active</button>`;
                 } else {
-                    html += `<button class="show-btn" onclick="toggleGroup('${id}')">Show</button>`;
+                    html += `<button class="show-btn" onclick="showGroup('${id}')">Show</button>`;
                 }
                 html += `<button onclick="toggleAddDrivers('${id}')">Add Driver</button>`;
                 html += `<button class="remove-group" onclick="removeGroup('${id}')">Remove</button>`;
@@ -1710,8 +1893,17 @@
             applyFilter();
         }
 
+        function showGroup(groupId) {
+            const group = groups[groupId];
+            if (!group) return;
+            saveActiveGroup(groupId);
+            applyFilter();
+            renderGroupManager();
+            updateShowAllButton();
+        }
+
         function showAllDrivers() {
-            clearActiveGroups();
+            saveActiveGroup(null);
             applyFilter();
             renderGroupManager();
             updateShowAllButton();
@@ -1722,11 +1914,8 @@
             const ref = getGroupsRef();
             if (!ref) return;
             await ref.child(groupId).remove();
-            // Remove from active list if present
-            const index = activeGroupIds.indexOf(groupId);
-            if (index !== -1) {
-                activeGroupIds.splice(index, 1);
-                saveActiveGroups();
+            if (activeGroupId === groupId) {
+                saveActiveGroup(null);
             }
             renderGroupManager();
             applyFilter();
@@ -1739,9 +1928,10 @@
             if (!ref) return;
             ref.on('value', snap => {
                 groups = snap.val() || {};
-                // Filter out active groups that no longer exist
-                activeGroupIds = activeGroupIds.filter(id => groups[id]);
-                saveActiveGroups(); // this will persist and apply filter
+                // If active group no longer exists, clear it
+                if (activeGroupId && !groups[activeGroupId]) {
+                    saveActiveGroup(null);
+                }
                 renderGroupManager();
                 updateShowAllButton();
                 applyFilter();
@@ -1752,7 +1942,7 @@
         //  INIT APP
         // ═══════════════════════════════════════════════════════════════════
         function initApp() {
-            loadActiveGroups();
+            loadActiveGroup();
 
             // Load drivers (global)
             const driversRef = getDriversRef();
@@ -1827,6 +2017,7 @@
         console.log('Click a driver name in the top-left list to zoom to their location.');
         console.log('Settings are only available for justin@ec.com and des@ec.com.');
         console.log('Click the logo to manage driver groups.');
+        console.log('PWA Install: Click the blue INSTALL button in the header.');
     </script>
 </body>
 </html>
