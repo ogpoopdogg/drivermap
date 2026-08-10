@@ -964,28 +964,19 @@
             }
         });
 
-        // ── Per-user path helpers ──
-        function getUserRoot() {
-            if (!currentUserId) return null;
-            return 'users/' + currentUserId + '/dispatch_dashboard';
-        }
-
+        // ── Global paths for drivers and master_config ──
         function getDriversRef() {
-            const root = getUserRoot();
-            if (!root) return null;
-            return db.ref(root + '/drivers');
+            return db.ref('developer/dispatch_dashboard/drivers');
         }
 
         function getMasterRef() {
-            const root = getUserRoot();
-            if (!root) return null;
-            return db.ref(root + '/master_config');
+            return db.ref('developer/dispatch_dashboard/master_config');
         }
 
+        // ── Per‑user path for groups ──
         function getGroupsRef() {
-            const root = getUserRoot();
-            if (!root) return null;
-            return db.ref(root + '/groups');
+            if (!currentUserId) return null;
+            return db.ref('users/' + currentUserId + '/dispatch_dashboard/groups');
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -1727,7 +1718,7 @@
         function initApp() {
             loadActiveGroup();
 
-            // Load drivers
+            // Load drivers (global)
             const driversRef = getDriversRef();
             if (driversRef) {
                 driversRef.on('value', snap => {
@@ -1737,7 +1728,7 @@
                 });
             }
 
-            // Load master config
+            // Load master config (global)
             const masterRef = getMasterRef();
             if (masterRef) {
                 masterRef.once('value').then(snap => {
@@ -1756,7 +1747,7 @@
                 });
             }
 
-            // Listen for groups
+            // Listen for groups (per‑user)
             listenGroups();
 
             // GPS polling
