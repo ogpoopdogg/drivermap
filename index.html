@@ -1003,7 +1003,7 @@
         // ═══════════════════════════════════════════════════════════════════
         let drivers = {};
         let groups = {};
-        let activeGroupId = null;
+        let activeGroupIds = []; // array of group IDs
         let map = null;
         let driverMarkers = {};
         let pulseCircles = {};
@@ -1018,29 +1018,53 @@
         const STANDBY_THRESHOLD = 15 * 60 * 1000;
         const OFFLINE_THRESHOLD = 60 * 60 * 1000;
 
-        // ── Active group from localStorage ──
-        function loadActiveGroup() {
-            const stored = localStorage.getItem('ec_active_group');
-            if (stored) activeGroupId = stored;
-            else activeGroupId = null;
+        // ── Active groups from localStorage ──
+        function loadActiveGroups() {
+            const stored = localStorage.getItem('ec_active_groups');
+            if (stored) {
+                try {
+                    activeGroupIds = JSON.parse(stored);
+                    if (!Array.isArray(activeGroupIds)) activeGroupIds = [];
+                } catch (e) {
+                    activeGroupIds = [];
+                }
+            } else {
+                activeGroupIds = [];
+            }
         }
 
-        function saveActiveGroup(id) {
-            activeGroupId = id;
-            if (id) localStorage.setItem('ec_active_group', id);
-            else localStorage.removeItem('ec_active_group');
+        function saveActiveGroups() {
+            localStorage.setItem('ec_active_groups', JSON.stringify(activeGroupIds));
             applyFilter();
         }
 
-        // ── Filtered drivers ──
+        function toggleGroup(groupId) {
+            const index = activeGroupIds.indexOf(groupId);
+            if (index === -1) {
+                activeGroupIds.push(groupId);
+            } else {
+                activeGroupIds.splice(index, 1);
+            }
+            saveActiveGroups();
+        }
+
+        function clearActiveGroups() {
+            activeGroupIds = [];
+            saveActiveGroups();
+        }
+
+        // ── Filtered drivers (union of all active groups) ──
         function getFilteredDrivers() {
-            if (!activeGroupId) return drivers;
-            const group = groups[activeGroupId];
-            if (!group || !group.driverIds) return {};
+            if (activeGroupIds.length === 0) return drivers; // show all
             const filtered = {};
-            for (let [id, drv] of Object.entries(drivers)) {
-                if (group.driverIds[id]) {
-                    filtered[id] = drv;
+            for (let gid of activeGroupIds) {
+                const group = groups[gid];
+                if (group && group.driverIds) {
+                    for (let did of Object.keys(group.driverIds)) {
+                        if (drivers[did]) {
+                            filtered[did] = drivers[did];
+                        }
+                    }
                 }
             }
             return filtered;
@@ -1056,7 +1080,7 @@
         function updateShowAllButton() {
             const btn = document.getElementById('showAllBtn');
             if (!btn) return;
-            if (!activeGroupId) {
+            if (activeGroupIds.length === 0) {
                 btn.classList.add('active');
                 btn.innerHTML = 'Show All Drivers <span class="active-pill">Active</span>';
             } else {
@@ -1616,7 +1640,7 @@
             }
             let html = '';
             for (let [id, group] of entries) {
-                const isActive = (activeGroupId === id);
+                const isActive = activeGroupIds.includes(id);
                 const isExpanded = (expandedGroupId === id);
                 const driverIds = group.driverIds || {};
                 const driverCount = Object.keys(driverIds).length;
@@ -1626,9 +1650,9 @@
                 html += `<span class="group-name">${group.name || 'Unnamed'} (${driverCount})</span>`;
                 html += `<div class="group-actions">`;
                 if (isActive) {
-                    html += `<button class="show-btn active-btn" onclick="showGroup('${id}')">Active</button>`;
+                    html += `<button class="show-btn active-btn" onclick="toggleGroup('${id}')">Active</button>`;
                 } else {
-                    html += `<button class="show-btn" onclick="showGroup('${id}')">Show</button>`;
+                    html += `<button class="show-btn" onclick="toggleGroup('${id}')">Show</button>`;
                 }
                 html += `<button onclick="toggleAddDrivers('${id}')">Add Driver</button>`;
                 html += `<button class="remove-group" onclick="removeGroup('${id}')">Remove</button>`;
@@ -1686,17 +1710,8 @@
             applyFilter();
         }
 
-        function showGroup(groupId) {
-            const group = groups[groupId];
-            if (!group) return;
-            saveActiveGroup(groupId);
-            applyFilter();
-            renderGroupManager();
-            updateShowAllButton();
-        }
-
         function showAllDrivers() {
-            saveActiveGroup(null);
+            clearActiveGroups();
             applyFilter();
             renderGroupManager();
             updateShowAllButton();
@@ -1707,8 +1722,11 @@
             const ref = getGroupsRef();
             if (!ref) return;
             await ref.child(groupId).remove();
-            if (activeGroupId === groupId) {
-                saveActiveGroup(null);
+            // Remove from active list if present
+            const index = activeGroupIds.indexOf(groupId);
+            if (index !== -1) {
+                activeGroupIds.splice(index, 1);
+                saveActiveGroups();
             }
             renderGroupManager();
             applyFilter();
@@ -1721,10 +1739,9 @@
             if (!ref) return;
             ref.on('value', snap => {
                 groups = snap.val() || {};
-                // If active group no longer exists, clear it
-                if (activeGroupId && !groups[activeGroupId]) {
-                    saveActiveGroup(null);
-                }
+                // Filter out active groups that no longer exist
+                activeGroupIds = activeGroupIds.filter(id => groups[id]);
+                saveActiveGroups(); // this will persist and apply filter
                 renderGroupManager();
                 updateShowAllButton();
                 applyFilter();
@@ -1735,7 +1752,7 @@
         //  INIT APP
         // ═══════════════════════════════════════════════════════════════════
         function initApp() {
-            loadActiveGroup();
+            loadActiveGroups();
 
             // Load drivers (global)
             const driversRef = getDriversRef();
