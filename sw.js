@@ -1,6 +1,6 @@
 // sw.js – Basic offline cache for E&C Driver Map
 
-const CACHE_NAME = 'ec-driver-map-v1';
+const CACHE_NAME = 'ec-driver-map-v2'; // bump whenever index.html changes so installed apps get the new version
 const ASSETS = [
   './',
   './index.html',
