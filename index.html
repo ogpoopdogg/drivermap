@@ -489,6 +489,103 @@
             border-radius: 4px;
         }
 
+        /* ── driver nicknames modal (shared with RouteWatcher) ── */
+        .nickname-modal {
+            z-index: 10001;
+        }
+        .nickname-modal .nickname-card {
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+        .nickname-card h2 {
+            margin-bottom: 6px;
+        }
+        .nickname-card .nickname-sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        .nickname-card .nickname-search {
+            background: #0b0b14;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .nickname-card .nickname-search:focus {
+            border-color: var(--accent);
+        }
+        .nick-row {
+            display: grid;
+            grid-template-columns: 10px minmax(0, 1fr) minmax(0, 1.2fr) 64px;
+            align-items: center;
+            column-gap: 10px;
+            background: var(--card2);
+            padding: 8px 12px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+        }
+        .nick-row.hidden {
+            display: none;
+        }
+        .nick-row .nick-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .nick-row .nick-name {
+            font-weight: 600;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .nick-row .nick-input {
+            background: #0b0b14;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            min-width: 0;
+            width: 100%;
+        }
+        .nick-row .nick-input:focus {
+            border-color: var(--accent);
+        }
+        .nick-row .nick-status {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            white-space: nowrap;
+            text-align: right;
+            transition: opacity 0.4s;
+        }
+        .nick-row .nick-status.saved {
+            color: #2ecc71;
+        }
+        .nick-row .nick-status.error {
+            color: #e74c3c;
+        }
+        .nick-row .nick-status.fade {
+            opacity: 0;
+        }
+        .nickname-card .nick-empty {
+            color: var(--muted);
+            font-size: 14px;
+            text-align: center;
+            padding: 20px 0;
+        }
+
         /* ── group manager drawer ── */
         .group-drawer-overlay {
             display: none;
@@ -837,6 +934,14 @@
             .settings-card .driver-row .remove-driver {
                 flex: 0 0 auto;
             }
+            .nick-row {
+                grid-template-columns: 10px minmax(0, 1fr) 64px;
+                row-gap: 6px;
+            }
+            .nick-row .nick-input {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
             .map-controls-container {
                 margin: 6px 6px 0 0;
                 gap: 6px;
@@ -939,6 +1044,9 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+                <button class="gear-btn" onclick="openNicknameList()" title="Driver nicknames" aria-label="Driver nicknames">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </button>
                 <button class="gear-btn" onclick="location.reload(true);" title="Refresh page">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 </button>
@@ -989,6 +1097,19 @@
             <div class="settings-actions">
                 <button class="save-btn" onclick="saveSettings()">Save</button>
                 <button class="close-btn" onclick="closeSettings()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── DRIVER NICKNAMES MODAL ─── -->
+    <div class="settings-modal nickname-modal" id="nicknameModal" onclick="if (event.target === this) closeNicknameList()">
+        <div class="settings-card nickname-card">
+            <h2>Driver Nicknames</h2>
+            <p class="nickname-sub">Everyone sees these nicknames, here and in RouteWatcher. Each one saves as soon as you move to the next driver. Leave a box empty to remove that driver's nickname.</p>
+            <input type="search" id="nicknameSearch" class="nickname-search" placeholder="Search drivers" autocomplete="off" oninput="filterNicknameList()" />
+            <div id="nicknameList"></div>
+            <div class="settings-actions">
+                <button class="close-btn" onclick="closeNicknameList()">Done</button>
             </div>
         </div>
     </div>
@@ -1207,6 +1328,12 @@
             return db.ref('users/' + currentUserId + '/dispatch_dashboard/groups');
         }
 
+        // ── Shared path for driver nicknames (the same one RouteWatcher uses, so both apps always match) ──
+        function getNicknamesRef() {
+            if (!currentUserId) return null;
+            return db.ref('developer/dispatch_dashboard/driver_nicknames');
+        }
+
         // ═══════════════════════════════════════════════════════════════════
         //  STATE
         // ═══════════════════════════════════════════════════════════════════
@@ -1223,7 +1350,9 @@
         let authRetryInProgress = false;
         let zoomTimeout = null;
         let expandedGroupId = null;
+        let driverNicknames = {};
 
+        const NICKNAME_MAX_LENGTH = 24; // same limit as RouteWatcher
         const PAJ_BASE = 'https://connect.paj-gps.de/api/v1';
         const STANDBY_THRESHOLD = 15 * 60 * 1000;
         const OFFLINE_THRESHOLD = 60 * 60 * 1000;
@@ -1592,12 +1721,13 @@
                 if (!drv.lastLocation) continue;
                 const pos = drv.lastLocation;
                 const color = drv.color || '#f7c948';
-                const icon = getDriverIcon(drv.name || 'Driver', color, drv.heading);
+                const displayName = getDriverDisplayName(id, drv);
+                const icon = getDriverIcon(displayName, color, drv.heading);
                 const marker = new google.maps.Marker({
                     position: { lat: pos.lat, lng: pos.lng },
                     map: map,
                     icon: icon,
-                    title: drv.name || 'Driver'
+                    title: displayName
                 });
                 driverMarkers[id] = marker;
 
@@ -1623,13 +1753,17 @@
         }
 
         function getDriverIcon(name, color, heading) {
-            const safeName = name.replace(/'/g, "\\'");
+            const rawName = String(name == null ? '' : name);
+            // Nicknames are typed by users, so escape them before putting them inside the SVG
+            const safeName = rawName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+            const width = Math.max(50, Math.min(220, rawName.length * 7 + 16)); // wide enough that "Name (Nickname)" is not clipped
+            const half = width / 2;
             const svg =
-                `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="60"><text x="25" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${safeName}</text><circle cx="25" cy="40" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="60"><text x="${half}" y="14" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${safeName}</text><circle cx="${half}" cy="40" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
             return {
                 url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
-                anchor: new google.maps.Point(25, 40),
-                scaledSize: new google.maps.Size(50, 60),
+                anchor: new google.maps.Point(half, 40),
+                scaledSize: new google.maps.Size(width, 60),
                 rotation: heading || 0
             };
         }
@@ -1732,7 +1866,7 @@
                 else if (status.cls === 'standby') statusColor = '#f1c40f';
                 const statusTitle = status.status.charAt(0).toUpperCase() + status.status.slice(1);
                 const statusClassName = 'driver-status-dot' + (status.status === 'online' ? ' is-online' : '');
-                const nameText = drv.name || 'Driver';
+                const nameText = getDriverNickname(id) || getDriverDisplayName(id, drv);
                 const timeText = formatDriverLastUpdate(drv.lastLocation?.updatedAt);
 
                 let row = existingRows[String(id)];
@@ -1844,6 +1978,174 @@
             });
             if (email && pass) authenticatePAJ();
             closeSettings();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  DRIVER NICKNAMES (shared with RouteWatcher — everyone sees the same ones)
+        // ═══════════════════════════════════════════════════════════════════
+        function listenNicknames() {
+            const ref = getNicknamesRef();
+            if (!ref) return;
+            ref.off();
+            ref.on('value', snap => {
+                driverNicknames = snap.val() || {};
+                updateMapMarkers();
+                updateMapDriverControl();
+                syncNicknameInputs();
+            });
+        }
+
+        function getDriverNickname(driverId) {
+            const nick = driverNicknames ? driverNicknames[driverId] : null;
+            return (typeof nick === 'string' && nick.trim()) ? nick.trim() : '';
+        }
+
+        // Same format as RouteWatcher: "Name (Nickname)"
+        function getDriverDisplayName(driverId, drv) {
+            const base = (drv && drv.name) ? drv.name : 'Driver';
+            const nick = getDriverNickname(driverId);
+            return nick ? base + ' (' + nick + ')' : base;
+        }
+
+        function isNicknameListOpen() {
+            const modal = document.getElementById('nicknameModal');
+            return !!modal && modal.style.display === 'flex';
+        }
+
+        function openNicknameList() {
+            document.getElementById('nicknameSearch').value = '';
+            renderNicknameList();
+            document.getElementById('nicknameModal').style.display = 'flex';
+        }
+
+        function closeNicknameList() {
+            // Save the box being typed in, in case hiding the modal doesn't fire its blur
+            const active = document.activeElement;
+            if (active && active.classList.contains('nick-input')) saveNicknameInput(active);
+            document.getElementById('nicknameModal').style.display = 'none';
+        }
+
+        function renderNicknameList() {
+            const container = document.getElementById('nicknameList');
+            if (!container) return;
+            const entries = Object.entries(drivers).sort((a, b) =>
+                String(a[1].name || '').localeCompare(String(b[1].name || ''), undefined, { sensitivity: 'base' }));
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="nick-empty">No drivers yet.</div>';
+                return;
+            }
+            // Reuse rows so a GPS update while the list is open doesn't wipe what someone is typing
+            const existingRows = {};
+            Array.from(container.children).forEach(child => {
+                if (child.classList.contains('nick-row')) existingRows[child.dataset.driverId] = child;
+                else child.remove();
+            });
+            const keepIds = new Set();
+            entries.forEach(([id, drv], index) => {
+                keepIds.add(id);
+                let row = existingRows[id];
+                if (!row) {
+                    row = document.createElement('div');
+                    row.className = 'nick-row';
+                    row.dataset.driverId = id;
+                    row.innerHTML = '<span class="nick-dot"></span>' +
+                        '<span class="nick-name"></span>' +
+                        '<input type="text" class="nick-input" placeholder="Add nickname" autocomplete="off">' +
+                        '<span class="nick-status" aria-live="polite"></span>';
+                    const input = row.querySelector('.nick-input');
+                    input.maxLength = NICKNAME_MAX_LENGTH;
+                    input.value = getDriverNickname(id);
+                    input.addEventListener('blur', () => saveNicknameInput(input));
+                    input.addEventListener('keydown', e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            focusNextNicknameInput(input);
+                        }
+                    });
+                }
+                row.querySelector('.nick-dot').style.background = drv.color || '#f7c948';
+                const nameText = drv.name || 'Driver';
+                const nameSpan = row.querySelector('.nick-name');
+                if (nameSpan.textContent !== nameText) {
+                    nameSpan.textContent = nameText;
+                    nameSpan.title = nameText;
+                }
+                row.querySelector('.nick-input').setAttribute('aria-label', 'Nickname for ' + nameText);
+                if (container.children[index] !== row) container.insertBefore(row, container.children[index] || null);
+            });
+            Object.keys(existingRows).forEach(rowId => {
+                if (!keepIds.has(rowId)) existingRows[rowId].remove();
+            });
+            filterNicknameList();
+        }
+
+        // A nickname changed (here, in RouteWatcher, or by another user): show it, but never overwrite a box being typed in
+        function syncNicknameInputs() {
+            document.querySelectorAll('#nicknameList .nick-row').forEach(row => {
+                const input = row.querySelector('.nick-input');
+                if (!input || input === document.activeElement) return;
+                const nick = getDriverNickname(row.dataset.driverId);
+                if (input.value !== nick) input.value = nick;
+            });
+        }
+
+        function filterNicknameList() {
+            const searchEl = document.getElementById('nicknameSearch');
+            const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
+            document.querySelectorAll('#nicknameList .nick-row').forEach(row => {
+                const name = row.querySelector('.nick-name').textContent.toLowerCase();
+                const nick = row.querySelector('.nick-input').value.toLowerCase();
+                row.classList.toggle('hidden', !!query && !name.includes(query) && !nick.includes(query));
+            });
+        }
+
+        function focusNextNicknameInput(input) {
+            const inputs = Array.from(document.querySelectorAll('#nicknameList .nick-row:not(.hidden) .nick-input'));
+            const next = inputs[inputs.indexOf(input) + 1];
+            if (next) {
+                next.focus();
+                next.select();
+            } else {
+                input.blur();
+            }
+        }
+
+        function setNicknameStatus(row, state) {
+            const el = row.querySelector('.nick-status');
+            if (!el) return;
+            if (el._fadeTimer) clearTimeout(el._fadeTimer);
+            el.classList.remove('saved', 'error', 'fade');
+            el.removeAttribute('title');
+            if (state === 'saving') {
+                el.textContent = 'Saving…';
+            } else if (state === 'saved') {
+                el.textContent = 'Saved ✓';
+                el.classList.add('saved');
+                el._fadeTimer = setTimeout(() => el.classList.add('fade'), 2500);
+            } else if (state === 'error') {
+                el.textContent = 'Not saved';
+                el.classList.add('error');
+                el.title = 'Could not save this nickname. Check your connection or permissions and try again.';
+            }
+        }
+
+        // Saves one driver's nickname when its box loses focus (clicking or tabbing to the next driver, or Enter)
+        function saveNicknameInput(input) {
+            const row = input.closest('.nick-row');
+            const driverId = row ? row.dataset.driverId : null;
+            if (!driverId) return;
+            const value = input.value.trim().slice(0, NICKNAME_MAX_LENGTH);
+            if (input.value !== value) input.value = value;
+            if (value === getDriverNickname(driverId)) return;
+            const ref = getNicknamesRef();
+            if (!ref) return;
+            setNicknameStatus(row, 'saving');
+            const write = value ? ref.child(driverId).set(value) : ref.child(driverId).remove();
+            write.then(() => setNicknameStatus(row, 'saved'))
+                .catch(err => {
+                    console.warn('Nickname save failed:', err);
+                    setNicknameStatus(row, 'error');
+                });
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -2014,8 +2316,12 @@
                     drivers = snap.val() || {};
                     applyFilter();
                     renderSettingsList();
+                    if (isNicknameListOpen()) renderNicknameList();
                 });
             }
+
+            // Listen for driver nicknames (shared with RouteWatcher)
+            listenNicknames();
 
             // Load master config (global)
             const masterRef = getMasterRef();
@@ -2068,6 +2374,10 @@
                 }
             }
             if (e.key === 'Escape') {
+                if (isNicknameListOpen()) {
+                    closeNicknameList();
+                    e.preventDefault();
+                }
                 const settings = document.getElementById('settingsModal');
                 if (settings.style.display === 'flex') {
                     closeSettings();
